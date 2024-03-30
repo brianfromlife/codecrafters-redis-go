@@ -20,14 +20,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	conn, err := l.Accept()
+
+	if err != nil {
+		fmt.Println("failed to accept")
+		os.Exit(1)
+	}
+
+	defer conn.Close()
+
 	for {
-
-		conn, err := l.Accept()
-
-		if err != nil {
-			fmt.Println("failed to accept")
-			os.Exit(1)
-		}
 
 		buf := make([]byte, 1024)
 
@@ -35,11 +37,10 @@ func main() {
 
 		if err != nil {
 			fmt.Println("failed to read buffer", err)
-			os.Exit(1)
+
 		}
 
 		conn.Write([]byte("+PONG\r\n"))
-		conn.Close()
 	}
 
 }
