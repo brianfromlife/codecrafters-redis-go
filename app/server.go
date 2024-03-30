@@ -13,7 +13,6 @@ func main() {
 	fmt.Println("Logs from your program will appear here!")
 
 	// Uncomment this block to pass the first stage
-	//
 	l, err := net.Listen("tcp", "0.0.0.0:6379")
 	if err != nil {
 		fmt.Println("Failed to bind to port 6379")
@@ -28,20 +27,25 @@ func main() {
 			os.Exit(1)
 		}
 
-		for {
-
-			buf := make([]byte, 1024)
-
-			_, err = conn.Read(buf)
-
-			if err != nil {
-				fmt.Println("failed to read buffer", err)
-
-			}
-
-			conn.Write([]byte("+PONG\r\n"))
-			conn.Close()
-		}
+		go handleConnection(conn)
 
 	}
+}
+
+func handleConnection(conn net.Conn) {
+
+	for {
+
+		buf := make([]byte, 1024)
+
+		_, err := conn.Read(buf)
+
+		if err != nil {
+			fmt.Println("failed to read buffer", err)
+
+		}
+
+		conn.Write([]byte("+PONG\r\n"))
+	}
+
 }
