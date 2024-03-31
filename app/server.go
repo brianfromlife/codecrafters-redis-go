@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-
-	// Uncomment this block to pass the first stage
+	"io"
 	"net"
 	"os"
 )
@@ -33,12 +32,23 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
+	defer conn.Close()
 
 	for {
-
 		buf := make([]byte, 1024)
 
-		_, err := conn.Read(buf)
+		len, err := conn.Read(buf)
+
+		if err == io.EOF {
+			break
+		}
+
+		fullBuf := buf[:len]
+		// %q is to safely escape the string
+		message := fmt.Sprintf("%q", fullBuf)
+		fmt.Println("received:", message)
+
+		parseRequest(fullBuf)
 
 		if err != nil {
 			fmt.Println("failed to read buffer", err)
@@ -47,5 +57,28 @@ func handleConnection(conn net.Conn) {
 
 		conn.Write([]byte("+PONG\r\n"))
 	}
+}
 
+type Type byte
+
+const (
+	Integer = ':'
+	String  = '+'
+	Bulk    = '$'
+	Array   = '*'
+	Error   = '-'
+)
+
+func parseRequest(b []byte) int {
+	if len(b) == 0 {
+		return 0
+	}
+	messageType := Type(b[0])
+
+	if messageType == Array {
+		fmt.Printf("array message; %q", b[1:])
+		parseRequest(b[:1])
+	}
+
+	return 0
 }
