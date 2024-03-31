@@ -77,7 +77,6 @@ func parseRequest(b []byte) int {
 
 	if messageType == Array {
 		fmt.Printf("array message; %q", b[1:])
-		parseRequest(b[:1])
 	}
 
 	return 0
